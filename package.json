@@ -1,0 +1,16 @@
+{
+  "name": "rolltech-backend",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "tsx server/index.production.ts"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "nodemailer": "^6.9.17",
+    "zod": "^3.24.1",
+    "tsx": "^4.19.2"
+  }
+}
