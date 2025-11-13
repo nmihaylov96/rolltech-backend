@@ -3,7 +3,7 @@ dotenv.config();
  
 import express from "express";
 import cors from "cors";
-import nodemailer from "nodemailer";
+import { Resend } from "resend";
 import { z } from "zod";
  
 const app = express();
@@ -32,37 +32,14 @@ app.use((req, res, next) => {
   next();
 });
  
-/* ------------------------------- TRANSPORTER ------------------------------ */
+/* ------------------------------- RESEND INIT ------------------------------ */
  
-function createTransporter() {
-  const { GMAIL_USER, GMAIL_PASSWORD } = process.env;
- 
-  if (!GMAIL_USER || !GMAIL_PASSWORD) {
-    console.warn("⚠️  Липсва GMAIL_USER или GMAIL_PASSWORD");
-    return null;
-  }
- 
-  console.log("📧 Създавам SMTP транспортер за:", GMAIL_USER);
- 
-  return nodemailer.createTransport({
-    host: "smtp.gmail.com",
-    port: 465,
-    secure: true, // SSL
-    auth: {
-      user: GMAIL_USER,
-      pass: GMAIL_PASSWORD,
-    },
-    connectionTimeout: 20000,
-    greetingTimeout: 15000,
-    socketTimeout: 30000,
-    family: 4, // IPv4 само (Render често има IPv6 проблеми)
-    logger: true,
-    debug: true,
-    tls: {
-      servername: "smtp.gmail.com",
-    },
-  });
+// вземи API ключа от .env
+const resendApiKey = process.env.RESEND_API_KEY;
+if (!resendApiKey) {
+  console.warn("⚠️ Липсва RESEND_API_KEY в .env — имейлите няма да се пращат!");
 }
+const resend = new Resend(resendApiKey);
  
 /* ------------------------------ HELPER FUNCS ------------------------------ */
  
@@ -103,15 +80,13 @@ app.post("/api/contact", async (req, res) => {
     console.log(`💬 ${data.message}`);
     console.log("=".repeat(60));
  
-    const transporter = createTransporter();
-    if (transporter) {
+    if (!resendApiKey) {
+      console.warn("⚠️ Имейл не е конфигуриран (липсва RESEND_API_KEY)");
+    } else {
       try {
-        console.log("🔎 Проверявам SMTP връзка (verify)...");
-        await transporter.verify();
-        console.log("✅ SMTP връзката е активна. Изпращам имейл...");
- 
-        const info = await transporter.sendMail({
-          from: process.env.GMAIL_USER,
+        // изпрати имейл чрез Resend API
+        const response = await resend.emails.send({
+          from: "RollTech <noreply@rolltech-doors.com>", // можеш да смениш домейна
           to: "rolltech2020@gmail.com",
           subject: `Ново запитване от ${data.name} ${data.lastName} - RollTech`,
           html: `
@@ -125,26 +100,14 @@ app.post("/api/contact", async (req, res) => {
           `,
         });
  
-        console.log("✅ Имейл изпратен успешно!", {
-          messageId: info.messageId,
-          accepted: info.accepted,
-          rejected: info.rejected,
-          response: info.response,
-        });
+        console.log("✅ Имейл изпратен успешно!", response);
       } catch (err) {
-        console.error("⚠️ Email грешка (заявката е приета, но имейл не е пратен):", {
+        console.error("⚠️ Грешка при изпращане на имейл (Resend):", {
           name: err?.name,
-          code: err?.code,
-          command: err?.command,
-          response: err?.response?.toString?.() ?? err?.response,
           message: err?.message,
           stack: err?.stack,
         });
       }
-    } else {
-      console.warn(
-        "⚠️ Email не е конфигуриран - добавете GMAIL_USER и GMAIL_PASSWORD в .env"
-      );
     }
  
     return res
@@ -170,7 +133,7 @@ app.get("/health", (req, res) => {
   res.json({
     status: "ok",
     timestamp: new Date().toISOString(),
-    emailConfigured: !!(process.env.GMAIL_USER && process.env.GMAIL_PASSWORD),
+    emailConfigured: !!resendApiKey,
   });
 });
  
@@ -179,5 +142,5 @@ app.get("/health", (req, res) => {
 const port = parseInt(process.env.PORT || "3000", 10);
 app.listen(port, "0.0.0.0", () => {
   console.log(`🚀 Backend running on port ${port}`);
-  console.log(`📧 Email: ${process.env.GMAIL_USER || "NOT SET"}`);
+  console.log(`📧 Resend API Key: ${resendApiKey ? "SET" : "NOT SET"}`);
 });
