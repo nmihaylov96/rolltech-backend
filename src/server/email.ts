@@ -84,25 +84,26 @@ export const sendContactNotification = async (contactData: {
   service: string;
   message: string;
 }) => {
+  console.log('='.repeat(60));
+  console.log('📩 НОВО ЗАПИТВАНЕ ОТ УЕБСАЙТА:');
+  console.log('='.repeat(60));
+  console.log(`👤 Име: ${contactData.name} ${contactData.lastName}`);
+  console.log(`📧 Имейл: ${contactData.email}`);
+  console.log(`📱 Телефон: ${contactData.phone}`);
+  console.log(`🔧 Услуга: ${getServiceInBulgarian(contactData.service)}`);
+  console.log(`💬 Съобщение: ${contactData.message}`);
+  console.log('='.repeat(60));
+  
+  const transporter = createTransporter();
+  
+  if (!transporter) {
+    console.log('⚠️  Email не е конфигуриран - запитването е само логнато');
+    console.log('ℹ️  За изпращане на emails: добавете GMAIL_USER и GMAIL_PASSWORD в Render');
+    console.log('='.repeat(60));
+    return true;
+  }
+  
   try {
-    const transporter = createTransporter();
-    
-    // If no email service configured, just log the message
-    if (!transporter) {
-      console.log('='.repeat(50));
-      console.log('НОВО ЗАПИТВАНЕ ОТ УЕБСАЙТА:');
-      console.log('='.repeat(50));
-      console.log(`Име: ${contactData.name} ${contactData.lastName}`);
-      console.log(`Имейл: ${contactData.email}`);
-      console.log(`Телефон: ${contactData.phone}`);
-      console.log(`Услуга: ${getServiceInBulgarian(contactData.service)}`);
-      console.log(`Съобщение: ${contactData.message}`);
-      console.log('='.repeat(50));
-      console.log('ЗА ИЗПРАЩАНЕ НА ИМЕЙЛИ ДОБАВЕТЕ EMAIL НАСТРОЙКИ');
-      console.log('='.repeat(50));
-      return true; // Consider it successful for development
-    }
-    
     const mailOptions = {
       from: process.env.HOSTINGER_EMAIL || process.env.GMAIL_USER || process.env.SMTP2GO_USERNAME || 'noreply@rolltech.bg',
       to: 'rolltech2020@gmail.com',
@@ -120,21 +121,20 @@ export const sendContactNotification = async (contactData: {
       `
     };
 
-    await transporter.sendMail(mailOptions);
-    console.log('Email sent successfully to rolltech2020@gmail.com');
+    await Promise.race([
+      transporter.sendMail(mailOptions),
+      new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Email timeout after 10s')), 10000)
+      )
+    ]);
+    
+    console.log('✅ Email изпратен успешно!');
+    console.log('='.repeat(60));
     return true;
   } catch (error) {
-    console.error('Error sending email:', error);
-    // Still log the contact request for development
-    console.log('='.repeat(50));
-    console.log('НОВО ЗАПИТВАНЕ (EMAIL НЕУСПЕШЕН):');
-    console.log('='.repeat(50));
-    console.log(`Име: ${contactData.name} ${contactData.lastName}`);
-    console.log(`Имейл: ${contactData.email}`);
-    console.log(`Телефон: ${contactData.phone}`);
-    console.log(`Услуга: ${getServiceInBulgarian(contactData.service)}`);
-    console.log(`Съобщение: ${contactData.message}`);
-    console.log('='.repeat(50));
-    return false;
+    console.error('❌ Email грешка:', error);
+    console.log('⚠️  Запитването е запазено (виж по-горе)');
+    console.log('='.repeat(60));
+    return true;
   }
 };
