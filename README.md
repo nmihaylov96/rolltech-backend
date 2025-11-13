@@ -13,10 +13,10 @@ npm install
 
 ### Start Command
 ```
-node index.js
+npm start
 ```
 
-### Environment Variables
+### Environment Variables (добавете в Render)
 ```
 HOSTINGER_EMAIL=info@your-domain.com
 HOSTINGER_PASSWORD=your-email-password
@@ -26,7 +26,7 @@ PORT=3000
 
 ## Production Features
 
-- ✅ Само Express API (без Vite dependencies)
+- ✅ TypeScript изпълнение с tsx loader (БЕЗ bundling проблеми)
 - ✅ CORS configured за Hostinger frontend
 - ✅ Email service през Hostinger SMTP
 - ✅ Health check endpoint: GET /health
@@ -45,7 +45,7 @@ PORT=3000
 
 ```bash
 npm install
-node index.js
+npm start
 ```
 
 Backend ще стартира на: http://localhost:3000
