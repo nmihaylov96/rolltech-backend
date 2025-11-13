@@ -1,32 +1,51 @@
-# Rolltech Backend
+# Rolltech Backend API
 
-Backend API за Rolltech garage door website.
+Production-ready backend API for Rolltech garage door website.
 
-## Deployment в Render.com
+## Deployment на Render.com
 
-1. Push това repo в GitHub
-2. В Render: New Web Service → Connect repo
-3. Настройки:
-   - Build Command: `npm install`
-   - Start Command: `node index.js`
-   - Environment Variables:
-     - HOSTINGER_EMAIL
-     - HOSTINGER_PASSWORD
-     - NODE_ENV=production
-     - PORT=3000
+**ВАЖНО:** Използвайте тези настройки:
 
-## Local Development
-
-```bash
+### Build Command
+```
 npm install
-npm run dev
 ```
 
-## Environment Variables
+### Start Command
+```
+node index.js
+```
 
+### Environment Variables
 ```
 HOSTINGER_EMAIL=info@your-domain.com
 HOSTINGER_PASSWORD=your-email-password
-NODE_ENV=development
+NODE_ENV=production
 PORT=3000
 ```
+
+## Production Features
+
+- ✅ Само Express API (без Vite dependencies)
+- ✅ CORS configured за Hostinger frontend
+- ✅ Email service през Hostinger SMTP
+- ✅ Health check endpoint: GET /health
+- ✅ Request logging
+- ✅ Error handling
+
+## API Endpoints
+
+### Contact Form
+- POST /api/contact - Изпраща контактна форма
+
+### Health Check
+- GET /health - Server status
+
+## Local Testing
+
+```bash
+npm install
+node index.js
+```
+
+Backend ще стартира на: http://localhost:3000
