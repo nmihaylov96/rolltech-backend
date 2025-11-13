@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "start": "tsx server/index.production.ts"
+    "start": "tsx src/server/index.production.ts"
   },
   "dependencies": {
     "express": "^4.21.2",
